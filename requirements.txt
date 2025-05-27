@@ -1,0 +1,14 @@
+# Core dependencies for AI Newsletter
+feedparser==6.0.10
+newspaper3k==0.2.8
+requests==2.31.0
+markdown==3.5.1
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# Environment variable management
+python-dotenv==1.0.0
+
+# Email functionality (built-in with Python)
+# smtplib - built-in
+# email - built-in
