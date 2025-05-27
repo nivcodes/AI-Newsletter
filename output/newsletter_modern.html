@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>🧠 AI News Digest – May 27, 2025</title>
+
+    <style>
+        /* CSS Custom Properties for theming */
+        :root {
+            --primary-color: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-color: #f59e0b;
+            --accent-color: #10b981;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-tertiary: #f3f4f6;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Container and layout */
+        .newsletter-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--bg-primary);
+            box-shadow: var(--shadow-xl);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Hero header section */
+        .newsletter-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .newsletter-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            pointer-events: none;
+        }
+
+        .newsletter-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .newsletter-date {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        .newsletter-subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Introduction section */
+        .newsletter-intro {
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .intro-text {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Article grid */
+        .articles-grid {
+            padding: 2rem;
+            display: grid;
+            gap: 2rem;
+            background: var(--bg-primary);
+        }
+
+        /* Article cards */
+        .article-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .article-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .article-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .article-content {
+            padding: 1.5rem;
+        }
+
+        .article-category {
+            display: inline-block;
+            background: var(--primary-gradient);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .article-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .article-rundown {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .article-points {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .article-points li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .article-points li::before {
+            content: '✨';
+            position: absolute;
+            left: 0;
+            top: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .why-matters {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--accent-color);
+            margin: 1rem 0;
+        }
+
+        .why-matters-title {
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .why-matters-text {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Call-to-action button */
+        .read-more-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--primary-gradient);
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+            margin-top: 1rem;
+        }
+
+        .read-more-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+            text-decoration: none;
+            color: white;
+        }
+
+        .read-more-btn::after {
+            content: '→';
+            transition: transform 0.3s ease;
+        }
+
+        .read-more-btn:hover::after {
+            transform: translateX(2px);
+        }
+
+        /* Footer */
+        .newsletter-footer {
+            background: var(--bg-tertiary);
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-text {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .newsletter-container {
+                margin: 0;
+                border-radius: 0;
+            }
+
+            .newsletter-header {
+                padding: 2rem 1rem 1.5rem;
+            }
+
+            .newsletter-title {
+                font-size: 2rem;
+            }
+
+            .newsletter-intro,
+            .articles-grid {
+                padding: 1.5rem;
+            }
+
+            .article-content {
+                padding: 1rem;
+            }
+
+            .article-title {
+                font-size: 1.125rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .newsletter-header {
+                padding: 1.5rem 1rem;
+            }
+
+            .newsletter-title {
+                font-size: 1.75rem;
+            }
+
+            .newsletter-intro,
+            .articles-grid {
+                padding: 1rem;
+            }
+
+            .articles-grid {
+                gap: 1.5rem;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .newsletter-container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .article-card {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid var(--border-color);
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            :root {
+                --text-primary: #000000;
+                --text-secondary: #333333;
+                --border-color: #666666;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+    
+</head>
+<body>
+    <div class="newsletter-container">
+        <!-- Header Section -->
+        <header class="newsletter-header">
+            <h1 class="newsletter-title">🧠 AI News Digest</h1>
+            <p class="newsletter-date">May 27, 2025</p>
+            <p class="newsletter-subtitle">Your curated source for the latest in artificial intelligence</p>
+        </header>
+
+        <!-- Introduction Section -->
+        <section class="newsletter-intro">
+            <div class="intro-text">
+    Welcome to our latest edition of the AI Newsletter, where we curate the most intriguing and thought-provoking stories in the ever-evolving world of artificial intelligence. Today's selection promises a fascinating mix of topics, ranging from breakthrough research to industry developments that are shaping our future.
+    </div>
+        </section>
+
+        <!-- Articles Grid -->
+        <main class="articles-grid">
+
+            <article class="article-card">
+                <img src="https://example.com/image1.jpg" alt="Article thumbnail" class="article-image" loading="lazy">
+                <div class="article-content">
+                    <span class="article-category">AI Models</span>
+                    <h2 class="article-title">OpenAI Releases Revolutionary GPT-5 Model</h2>
+                    <div class="article-rundown">OpenAI has unveiled GPT-5, a groundbreaking language model that demonstrates unprecedented reasoning capabilities and multimodal understanding.</div>
+                    
+                    <ul class="article-points"><li>Enhanced Reasoning: The model shows significant improvements in complex problem-solving and logical reasoning tasks</li><li>Multimodal Integration: GPT-5 can seamlessly process text, images, audio, and video in a unified framework</li><li>Efficiency Gains: Despite increased capabilities, the model requires 40% less computational resources than its predecessor</li></ul>
+                    
+                    <div class="why-matters">
+                        <div class="why-matters-title">Why it matters</div>
+                        <div class="why-matters-text">This advancement represents a major leap forward in AI capabilities, potentially revolutionizing how we interact with artificial intelligence across industries. The improved efficiency could make advanced AI more accessible to smaller organizations and developers worldwide.</div>
+                    </div>
+                    
+                    <a href="https://example.com/gpt5-release" class="read-more-btn">Read Full Article</a>
+                </div>
+            </article>
+    
+
+            <article class="article-card">
+                <img src="https://example.com/image2.jpg" alt="Article thumbnail" class="article-image" loading="lazy">
+                <div class="article-content">
+                    <span class="article-category">Big Tech</span>
+                    <h2 class="article-title">Google DeepMind Achieves Breakthrough in Protein Folding</h2>
+                    <div class="article-rundown">Google DeepMind's latest AlphaFold iteration has successfully predicted the structure of over 200 million proteins, covering nearly every known protein in existence.</div>
+                    
+                    <ul class="article-points"><li>Universal Coverage: The new model covers proteins from over 1 million species</li><li>Medical Applications: Researchers are already using the data to develop new treatments for rare diseases</li><li>Open Access: All protein structures are freely available to the global research community</li></ul>
+                    
+                    <div class="why-matters">
+                        <div class="why-matters-title">Why it matters</div>
+                        <div class="why-matters-text">This breakthrough could accelerate drug discovery by decades, potentially leading to treatments for diseases that have puzzled scientists for generations. The open-access approach ensures that researchers worldwide can benefit from this advancement.</div>
+                    </div>
+                    
+                    <a href="https://example.com/alphafold-breakthrough" class="read-more-btn">Read Full Article</a>
+                </div>
+            </article>
+    
+
+            <article class="article-card">
+                <img src="https://example.com/image3.jpg" alt="Article thumbnail" class="article-image" loading="lazy">
+                <div class="article-content">
+                    <span class="article-category">Big Tech</span>
+                    <h2 class="article-title">Meta Introduces Advanced AI Safety Framework</h2>
+                    <div class="article-rundown">Meta has announced a comprehensive AI safety framework designed to address alignment, robustness, and ethical considerations in large-scale AI systems.</div>
+                    
+                    <ul class="article-points"><li>Multi-layered Approach: The framework includes technical safeguards, ethical guidelines, and continuous monitoring systems</li><li>Industry Collaboration: Meta is working with other tech giants to establish industry-wide safety standards</li><li>Transparency Initiative: Regular safety reports will be published to maintain public accountability</li></ul>
+                    
+                    <div class="why-matters">
+                        <div class="why-matters-title">Why it matters</div>
+                        <div class="why-matters-text">As AI systems become more powerful, robust safety frameworks are essential for maintaining public trust and ensuring beneficial outcomes. Meta's proactive approach could set new industry standards for responsible AI development.</div>
+                    </div>
+                    
+                    <a href="https://example.com/meta-ai-safety" class="read-more-btn">Read Full Article</a>
+                </div>
+            </article>
+    
+        </main>
+
+        <!-- Footer -->
+        <footer class="newsletter-footer">
+            <p class="footer-text">
+                Made with ❤️ by AI Newsletter Generator<br>
+                Stay curious, stay informed!
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
