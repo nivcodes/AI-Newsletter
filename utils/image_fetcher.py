@@ -51,8 +51,79 @@ class ImageFetcher:
         timestamp = str(int(time.time()))
         return f"{base_name}_{timestamp}.jpg"
     
-    def extract_og_image(self, url):
-        """Extract Open Graph image from article URL"""
+    def is_logo_or_icon(self, image_url, image_size=None):
+        """Check if an image is likely a logo or icon"""
+        url_lower = image_url.lower()
+        
+        # Common logo/icon indicators in URL
+        logo_indicators = [
+            'logo', 'icon', 'favicon', 'brand', 'header', 'nav',
+            'avatar', 'profile', 'thumb', 'badge', 'button'
+        ]
+        
+        # Check URL for logo indicators
+        if any(indicator in url_lower for indicator in logo_indicators):
+            return True
+        
+        # Check file path for logo directories
+        logo_paths = ['/img/logo', '/images/logo', '/assets/logo', '/static/logo']
+        if any(path in url_lower for path in logo_paths):
+            return True
+        
+        # Check for very small images (likely icons)
+        if image_size:
+            width, height = image_size
+            if width < 200 or height < 150:
+                return True
+        
+        # Check for square images (often logos)
+        if image_size:
+            width, height = image_size
+            if width == height and width < 400:
+                return True
+        
+        return False
+    
+    def score_image_quality(self, image_url, image_size=None, context=""):
+        """Score image quality for article relevance"""
+        score = 0
+        url_lower = image_url.lower()
+        
+        # Negative scoring for logos/icons
+        if self.is_logo_or_icon(image_url, image_size):
+            score -= 50
+        
+        # Positive scoring for article-relevant images
+        article_indicators = [
+            'article', 'post', 'content', 'story', 'news',
+            'featured', 'hero', 'main', 'cover'
+        ]
+        
+        if any(indicator in url_lower for indicator in article_indicators):
+            score += 20
+        
+        # Size scoring
+        if image_size:
+            width, height = image_size
+            # Prefer landscape images for articles
+            if width > height and width >= 400:
+                score += 15
+            # Bonus for good article image sizes
+            if 600 <= width <= 1200 and 300 <= height <= 800:
+                score += 10
+        
+        # Context relevance (if we have article title/content)
+        if context:
+            context_lower = context.lower()
+            # Look for AI/tech related terms in image URL
+            tech_terms = ['ai', 'tech', 'robot', 'computer', 'data', 'digital']
+            if any(term in url_lower for term in tech_terms):
+                score += 10
+        
+        return score
+    
+    def extract_og_image(self, url, title=""):
+        """Extract Open Graph image from article URL with quality scoring"""
         try:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
@@ -61,6 +132,7 @@ class ImageFetcher:
             response.raise_for_status()
             
             soup = BeautifulSoup(response.content, 'html.parser')
+            candidate_images = []
             
             # Try Open Graph image first
             og_image = soup.find('meta', property='og:image')
@@ -69,7 +141,10 @@ class ImageFetcher:
                 # Make absolute URL if relative
                 if image_url.startswith('/'):
                     image_url = urljoin(url, image_url)
-                return image_url
+                
+                # Score this image
+                score = self.score_image_quality(image_url, context=title)
+                candidate_images.append((image_url, score, 'og:image'))
             
             # Try Twitter card image
             twitter_image = soup.find('meta', attrs={'name': 'twitter:image'})
@@ -77,24 +152,40 @@ class ImageFetcher:
                 image_url = twitter_image['content']
                 if image_url.startswith('/'):
                     image_url = urljoin(url, image_url)
-                return image_url
+                
+                score = self.score_image_quality(image_url, context=title)
+                candidate_images.append((image_url, score, 'twitter:image'))
             
-            # Try to find first large image in content
+            # Try to find content images with better scoring
             images = soup.find_all('img')
             for img in images:
                 src = img.get('src')
                 if src and not src.startswith('data:'):
-                    # Skip small images (likely icons)
+                    if src.startswith('/'):
+                        src = urljoin(url, src)
+                    
+                    # Get image dimensions if available
                     width = img.get('width')
                     height = img.get('height')
+                    image_size = None
                     if width and height:
                         try:
-                            if int(width) >= 300 and int(height) >= 200:
-                                if src.startswith('/'):
-                                    src = urljoin(url, src)
-                                return src
+                            image_size = (int(width), int(height))
                         except ValueError:
-                            continue
+                            pass
+                    
+                    # Score this image
+                    score = self.score_image_quality(src, image_size, title)
+                    
+                    # Only consider images with positive scores
+                    if score > 0:
+                        candidate_images.append((src, score, 'content'))
+            
+            # Return the highest scoring image
+            if candidate_images:
+                best_image = max(candidate_images, key=lambda x: x[1])
+                logger.info(f"Selected image with score {best_image[1]} from {best_image[2]}")
+                return best_image[0]
             
             return None
             
@@ -189,8 +280,8 @@ class ImageFetcher:
                     'source': 'article_extraction'
                 }
         
-        # Try Open Graph image extraction
-        og_image_url = self.extract_og_image(url)
+        # Try Open Graph image extraction with title context
+        og_image_url = self.extract_og_image(url, title)
         if og_image_url:
             filename = self.get_safe_filename(og_image_url, title)
             filepath = self.download_and_process_image(og_image_url, filename)

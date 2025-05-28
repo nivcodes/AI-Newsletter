@@ -166,45 +166,59 @@ class PremiumHTMLProcessor:
         return template_data
     
     def simple_template_render(self, template, data):
-        """Simple template rendering (since we don't have Handlebars in Python)"""
+        """Improved template rendering that properly handles loops without nesting"""
         result = template
         
-        # Replace simple variables
+        # Replace simple variables first
         for key, value in data.items():
             if isinstance(value, str):
                 result = result.replace(f"{{{{{key}}}}}", value)
         
-        # Handle conditional sections
+        # Handle conditional sections properly
         for category in ['research_articles', 'tools_articles', 'industry_articles', 
                         'usecase_articles', 'misc_articles']:
             articles = data.get(category, [])
             
             if articles:
-                # Keep the section
+                # Find the section pattern
                 section_pattern = f"{{{{#if {category}}}}}(.*?){{{{/if}}}}"
                 section_match = re.search(section_pattern, result, re.DOTALL)
                 if section_match:
                     section_content = section_match.group(1)
                     
-                    # Process each article in the section
-                    articles_html = ""
-                    for article in articles:
-                        article_html = section_content
-                        # Replace article variables
-                        for key, value in article.items():
-                            article_html = article_html.replace(f"{{{{{key}}}}}", str(value))
-                        
-                        # Handle image conditional
-                        if article.get('image_url'):
-                            article_html = re.sub(r'{{#if image_url}}(.*?){{/if}}', r'\1', article_html, flags=re.DOTALL)
-                        else:
-                            article_html = re.sub(r'{{#if image_url}}(.*?){{/if}}', '', article_html, flags=re.DOTALL)
-                        
-                        articles_html += article_html
+                    # Extract the article template from within the section
+                    # Look for the {{#each}} pattern within this section
+                    each_pattern = f"{{{{#each {category}}}}}(.*?){{{{/each}}}}"
+                    each_match = re.search(each_pattern, section_content, re.DOTALL)
                     
-                    result = result.replace(section_match.group(0), articles_html)
+                    if each_match:
+                        # Use the {{#each}} template
+                        article_template = each_match.group(1)
+                        
+                        # Generate HTML for all articles
+                        articles_html = ""
+                        for article in articles:
+                            article_html = article_template
+                            
+                            # Replace article variables
+                            for key, value in article.items():
+                                article_html = article_html.replace(f"{{{{{key}}}}}", str(value))
+                            
+                            # Handle image conditional
+                            if article.get('image_url'):
+                                article_html = re.sub(r'{{#if image_url}}(.*?){{/if}}', r'\1', article_html, flags=re.DOTALL)
+                            else:
+                                article_html = re.sub(r'{{#if image_url}}(.*?){{/if}}', '', article_html, flags=re.DOTALL)
+                            
+                            articles_html += article_html
+                        
+                        # Replace the {{#each}} block with the generated content
+                        section_content = section_content.replace(each_match.group(0), articles_html)
+                    
+                    # Replace the entire section
+                    result = result.replace(section_match.group(0), section_content)
             else:
-                # Remove the section
+                # Remove the entire section if no articles
                 section_pattern = f"{{{{#if {category}}}}}(.*?){{{{/if}}}}"
                 result = re.sub(section_pattern, '', result, flags=re.DOTALL)
         

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>🧠 AI Daily Digest – May 28, 2025</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Container */
+        .newsletter-container {
+            max-width: 720px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Header */
+        .newsletter-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .newsletter-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .newsletter-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Introduction */
+        .newsletter-intro {
+            padding: 30px;
+            background: linear-gradient(to bottom, #ffffff, #f8fafc);
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .intro-text {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #4a5568;
+        }
+        
+        /* Section headers */
+        .section-header {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 20px 30px;
+            border-left: 4px solid #667eea;
+            margin: 0;
+        }
+        
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Article cards */
+        .articles-container {
+            padding: 0 30px 30px;
+        }
+        
+        .article-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .article-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+        
+        .article-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .article-content {
+            padding: 25px;
+        }
+        
+        .article-category {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+        }
+        
+        .article-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .article-summary {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .article-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            margin-top: 15px;
+        }
+        
+        .article-link:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+        
+        /* Editor's Take section */
+        .editors-take-section {
+            background: linear-gradient(135deg, #1a202c, #2d3748);
+            color: white;
+            padding: 30px;
+            margin: 30px 0;
+        }
+        
+        .editors-take-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .editors-take-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #f6ad55;
+        }
+        
+        .editors-take-article-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #f7fafc;
+        }
+        
+        .editors-take-text {
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+        
+        /* Footer */
+        .newsletter-footer {
+            background: #2d3748;
+            color: #a0aec0;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .footer-text {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .footer-link:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .newsletter-container {
+                margin: 0;
+                box-shadow: none;
+            }
+            
+            .newsletter-header {
+                padding: 30px 20px;
+            }
+            
+            .newsletter-title {
+                font-size: 2rem;
+            }
+            
+            .newsletter-intro,
+            .articles-container,
+            .section-header,
+            .editors-take-section,
+            .newsletter-footer {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            
+            .article-content {
+                padding: 20px;
+            }
+            
+            .article-title {
+                font-size: 1.2rem;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+        </style>
+</head>
+<body>
+    <div class="newsletter-container">
+        <!-- Header -->
+        <header class="newsletter-header">
+            <h1 class="newsletter-title">🧠 AI Daily Digest</h1>
+            <p class="newsletter-subtitle">May 28, 2025 • Curated Intelligence for Developers & Founders</p>
+        </header>
+        
+        <!-- Introduction -->
+        <section class="newsletter-intro">
+            <div class="intro-text"> In the realm of AI innovation, we're witnessing a dynamic shift as the boundaries between creative expression and technical prowess blur. Today's digest is brimming with exhilarating developments that underscore this transformation.
+
+Firstly, Mistral's groundbreaking API promises to empower developers to construct versatile AI agents, capable of running Python scripts, generating images, and executing Recommendation, Anomaly Detection, and Generation (RAG) tasks. This could revolutionize the way we interact with AI, making it more accessible than ever before.
+
+Meanwhile, Spott's AI-native recruiting platform has secured a significant $3.2M investment, aiming to bring order to the chaotic world of hiring software. As the future of work evolves, streamlining recruitment processes with AI is becoming increasingly crucial. Lastly, Rumi's ambitious $4.7M fundraising round signals a shift towards interactive, AI-driven media experiences. This trend promises to breathe life into passive content, engaging audiences in unprecedented ways. Dive into these stories and more, as we continue exploring the frontiers of AI together.</div>
+        </section>
+        
+        <!-- Content Sections -->
+        
+        
+        <div class="section-header">
+            <h2 class="section-title">⚙️ Tools & APIs</h2>
+        </div>
+        <div class="articles-container">
+        
+            <article class="article-card">
+                <img src="https://venturebeat.com/wp-content/themes/vb-news/img/favicon.ico" alt="Mistral launches API for building AI agents that run Python, generate images, perform RAG and more" class="article-image" />
+                <div class="article-content">
+                    <span class="article-category">Tools & APIs</span>
+                    <h3 class="article-title">Mistral launches API for building AI agents that run Python, generate images, perform RAG and more</h3>
+                    <div class="article-summary">The Rundown: • Enables developers to integrate autonomous generative AI capabilities into their apps using Mistral’s Medium 3 model • Offers agentic orchestration, built-in connectors, and the ability to manage conversations across tasks</div>
+                    <a href="https://venturebeat.com/ai/mistral-launches-api-for-building-ai-agents-that-run-python-generate-images-perform-rag-and-more/" class="article-link">👉 Read more</a>
+                </div>
+            </article>
+        </div>
+        
+        <div class="section-header">
+            <h2 class="section-title">📢 Industry News</h2>
+        </div>
+        <div class="articles-container">
+        
+            <article class="article-card">
+                <img src="https://venturebeat.com/wp-content/themes/vb-news/img/favicon.ico" alt="Spott’s AI-native recruiting platform scores $3.2M to end hiring software chaos" class="article-image" />
+                <div class="article-content">
+                    <span class="article-category">Industry News</span>
+                    <h3 class="article-title">Spott’s AI-native recruiting platform scores $3.2M to end hiring software chaos</h3>
+                    <div class="article-summary">The Rundown: - San Francisco-based startup Spott secures seed funding for its AI-native recruiting platform - The platform aims to streamline workflows and enable recruiters to focus on placements</div>
+                    <a href="https://venturebeat.com/ai/spotts-ai-native-recruiting-platform-scores-3-2m-to-end-hiring-software-chaos/" class="article-link">👉 Read more</a>
+                </div>
+            </article>
+        
+            <article class="article-card">
+                <img src="https://venturebeat.com/wp-content/uploads/2025/05/Rumi-image.jpg?w=1024?w=1200&strip=all" alt="Rumi raises $4.7M to change passive media into interactive AI experiences" class="article-image" />
+                <div class="article-content">
+                    <span class="article-category">Industry News</span>
+                    <h3 class="article-title">Rumi raises $4.7M to change passive media into interactive AI experiences</h3>
+                    <div class="article-summary">The Rundown: - Rumi, an AI media company, has raised $4.7 million to transform passive media into interactive experiences - The invite-only beta app aims to allow users to engage with media content in real time, powered by AI</div>
+                    <a href="https://venturebeat.com/games/rumi-raises-4-7m-to-change-passive-media-into-interactive-ai-experiences/" class="article-link">👉 Read more</a>
+                </div>
+            </article>
+        </div>
+        
+        
+        
+        <!-- Editor's Take Section -->
+        
+        <section class="editors-take-section">
+            <h2 class="editors-take-title">✍️ Editor's Take</h2>
+            
+            <div class="editors-take-item">
+                <div class="editors-take-article-title">Mistral launches API for building AI agents that run Python, generate images, perform RAG and more</div>
+                <div class="editors-take-text"> In a bold move that could redefine AI-powered workflows, Mistral's Agents API democratizes advanced autonomous AI capabilities. By offering an easy-to-integrate platform with powerful agentic features, they are pushing past the chat-centric limitations of traditional LLMs. This could pave the way for a future where AI becomes an integral and adaptable part of everyday enterprise operations, potentially transforming industries and reshaping the AI landscape as we know it.</div>
+            </div>
+            
+            <div class="editors-take-item">
+                <div class="editors-take-article-title">Spott’s AI-native recruiting platform scores $3.2M to end hiring software chaos</div>
+                <div class="editors-take-text"> This $3.2M seed funding for Spott signals a significant shift in the recruitment tech landscape, as we move away from fragmented point solutions and towards all-in-one AI platforms. By automating entire workflows and offering active management of candidate sourcing, screening, and placement, Spott's platform could disrupt traditional methods and set new standards for efficiency. In the broader AI context, this marks a step forward in the democratization of AI technology, making it more accessible and impactful for industries beyond tech giants.</div>
+            </div>
+            
+            <div class="editors-take-item">
+                <div class="editors-take-article-title">Rumi raises $4.7M to change passive media into interactive AI experiences</div>
+                <div class="editors-take-text"> In a world where passive consumption dominates media, Rumi's $4.7M funding signals a seismic shift towards interactive AI experiences. This move not only redefines streaming as an active income-generating activity but also sets a precedent for decentralized AI infrastructure in consumer media. As the line between reality and virtual engagement blurs, we can expect to see more immersive, intelligent, and rewarding content experiences that challenge our traditional understanding of media consumption. This development is a clear indication that the future of AI isn't just about automation, but about creating engaging, participatory ecosystems that enrich our lives.</div>
+            </div>
+            
+        </section>
+        
+        
+        <!-- Footer -->
+        <footer class="newsletter-footer">
+            <div class="footer-text">
+                Thanks for reading AI Daily Digest! Forward this to a friend who'd love staying ahead in AI.
+            </div>
+            <div class="footer-links">
+                <a href="#" class="footer-link">Archive</a>
+                <a href="#" class="footer-link">Subscribe</a>
+                <a href="#" class="footer-link">Feedback</a>
+                <a href="#" class="footer-link">Unsubscribe</a>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

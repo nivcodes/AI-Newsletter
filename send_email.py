@@ -27,7 +27,7 @@ def send_email(subject, html_path, to_email, from_email, smtp_server, smtp_port,
 
 send_email(
     subject="🧠 Your AI News Digest – Test Edition",
-    html_path="newsletter_inlined.html",
+    html_path="newsletter_premium.html",
     to_email=os.getenv("EMAIL_TO"),
     from_email=os.getenv("EMAIL_FROM"),
     smtp_server=os.getenv("SMTP_SERVER"),

@@ -10,7 +10,7 @@ from datetime import datetime
 # Import enhanced utilities
 from utils.enhanced_content_fetcher import fetch_and_filter_articles
 from utils.enhanced_summarizer import generate_newsletter_content
-from utils.premium_html_processor import save_premium_newsletter_files
+from utils.fixed_html_processor import save_fixed_newsletter_files
 from utils.image_fetcher import fetch_article_images
 from utils.email_sender import send_newsletter_email, test_email_config, send_test_email
 from config import MAX_ARTICLES, OUTPUT_DIR
@@ -83,7 +83,7 @@ def generate_enhanced_newsletter(max_articles=None, style="editorial", save_file
         files_saved = {}
         if save_files:
             logger.info("💾 Saving newsletter files in multiple formats...")
-            files_saved = save_premium_newsletter_files(content, output_dir or OUTPUT_DIR)
+            files_saved = save_fixed_newsletter_files(content, output_dir or OUTPUT_DIR)
         
         result = {
             'content': content,
