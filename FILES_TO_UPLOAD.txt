@@ -1,0 +1,35 @@
+📁 Files to Upload to GitHub Repository
+==========================================
+
+Copy these files from your AI Newsletter folder to GitHub:
+
+REQUIRED FILES:
+✅ .github/workflows/newsletter.yml
+✅ newsletter_scheduler_github.py
+✅ enhanced_newsletter_generator.py
+✅ config.py
+✅ requirements.txt
+
+REQUIRED FOLDER:
+✅ utils/ (entire folder with all files inside)
+
+OPTIONAL (for reference):
+📄 GITHUB_ACTIONS_SETUP.md (setup instructions)
+📄 README.md (project documentation)
+
+DO NOT UPLOAD:
+❌ .env (contains your secrets - use GitHub Secrets instead)
+❌ newsletter_scheduler.py (local version, not needed)
+❌ run_newsletter.sh (local version, not needed)
+❌ com.ainewsletter.daily.plist (macOS only, not needed)
+❌ install_scheduler.py (local version, not needed)
+❌ output/ folder (generated files, not needed)
+❌ logs/ folder (local logs, not needed)
+
+UPLOAD METHOD:
+1. Go to your GitHub repository
+2. Click "uploading an existing file"
+3. Drag and drop the required files above
+4. Commit changes
+
+That's it! GitHub Actions will handle the rest.

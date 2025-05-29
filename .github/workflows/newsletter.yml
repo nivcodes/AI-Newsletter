@@ -1,0 +1,104 @@
+name: AI Newsletter Daily Scheduler
+
+on:
+  schedule:
+    # Run at 7:00 AM Eastern Time, Monday through Friday
+    # GitHub Actions uses UTC, so 7 AM Eastern = 12:00 PM UTC (11:00 AM during DST)
+    - cron: '0 11 * * 1-5'  # 11 AM UTC = 7 AM EDT (Daylight Saving Time)
+    - cron: '0 12 * * 1-5'  # 12 PM UTC = 7 AM EST (Standard Time)
+  
+  # Allow manual triggering for testing
+  workflow_dispatch:
+    inputs:
+      force_run:
+        description: 'Force run regardless of schedule/holidays'
+        required: false
+        default: 'false'
+        type: boolean
+      dry_run:
+        description: 'Generate newsletter without sending email'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  send-newsletter:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Create output directory
+      run: mkdir -p output logs
+    
+    - name: Set up environment variables
+      env:
+        EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+        EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        EMAIL_USER: ${{ secrets.EMAIL_USER }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+        SMTP_PORT: ${{ secrets.SMTP_PORT }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        USE_EXTERNAL_LLM: ${{ secrets.USE_EXTERNAL_LLM }}
+        PREFERRED_LLM: ${{ secrets.PREFERRED_LLM }}
+      run: |
+        # Create .env file from secrets
+        echo "EMAIL_FROM=$EMAIL_FROM" >> .env
+        echo "EMAIL_TO=$EMAIL_TO" >> .env
+        echo "EMAIL_USER=$EMAIL_USER" >> .env
+        echo "EMAIL_PASSWORD=$EMAIL_PASSWORD" >> .env
+        echo "SMTP_SERVER=$SMTP_SERVER" >> .env
+        echo "SMTP_PORT=$SMTP_PORT" >> .env
+        echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> .env
+        echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> .env
+        echo "USE_EXTERNAL_LLM=$USE_EXTERNAL_LLM" >> .env
+        echo "PREFERRED_LLM=$PREFERRED_LLM" >> .env
+    
+    - name: Run newsletter scheduler (Normal)
+      if: ${{ !github.event.inputs.force_run && !github.event.inputs.dry_run }}
+      run: python newsletter_scheduler_github.py
+    
+    - name: Run newsletter scheduler (Force)
+      if: ${{ github.event.inputs.force_run == 'true' }}
+      run: python newsletter_scheduler_github.py --force
+    
+    - name: Run newsletter scheduler (Dry Run)
+      if: ${{ github.event.inputs.dry_run == 'true' }}
+      run: python newsletter_scheduler_github.py --dry-run
+    
+    - name: Upload newsletter artifacts
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: newsletter-output-${{ github.run_number }}
+        path: |
+          output/
+          logs/
+        retention-days: 7
+    
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "Newsletter generation failed. Check the logs above for details."
+        echo "You can download the artifacts to see detailed error information."
+    
+    - name: Display success summary
+      if: success()
+      run: |
+        echo "✅ Newsletter sent successfully!"
+        echo "📊 Check the logs above for generation statistics."
+        echo "📁 Newsletter files have been uploaded as artifacts."

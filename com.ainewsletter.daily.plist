@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Service identification -->
+    <key>Label</key>
+    <string>com.ainewsletter.daily</string>
+    
+    <!-- Program to run -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/nivedhrajesh/Documents/Documents - NIVEDH's MacBook Pro/Spring 2025/AI Projects/AI Newsletter/run_newsletter.sh</string>
+    </array>
+    
+    <!-- Working directory -->
+    <key>WorkingDirectory</key>
+    <string>/Users/nivedhrajesh/Documents/Documents - NIVEDH's MacBook Pro/Spring 2025/AI Projects/AI Newsletter</string>
+    
+    <!-- Schedule: Run at 7:00 AM Monday through Friday -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <!-- Monday -->
+        <dict>
+            <key>Weekday</key>
+            <integer>1</integer>
+            <key>Hour</key>
+            <integer>7</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+        <!-- Tuesday -->
+        <dict>
+            <key>Weekday</key>
+            <integer>2</integer>
+            <key>Hour</key>
+            <integer>7</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+        <!-- Wednesday -->
+        <dict>
+            <key>Weekday</key>
+            <integer>3</integer>
+            <key>Hour</key>
+            <integer>7</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+        <!-- Thursday -->
+        <dict>
+            <key>Weekday</key>
+            <integer>4</integer>
+            <key>Hour</key>
+            <integer>7</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+        <!-- Friday -->
+        <dict>
+            <key>Weekday</key>
+            <integer>5</integer>
+            <key>Hour</key>
+            <integer>7</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+    </array>
+    
+    <!-- Environment variables -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>/Users/nivedhrajesh</string>
+        <key>USER</key>
+        <string>nivedhrajesh</string>
+    </dict>
+    
+    <!-- Logging configuration -->
+    <key>StandardOutPath</key>
+    <string>/Users/nivedhrajesh/Documents/Documents - NIVEDH's MacBook Pro/Spring 2025/AI Projects/AI Newsletter/logs/launchd_stdout.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/Users/nivedhrajesh/Documents/Documents - NIVEDH's MacBook Pro/Spring 2025/AI Projects/AI Newsletter/logs/launchd_stderr.log</string>
+    
+    <!-- Process management -->
+    <key>RunAtLoad</key>
+    <false/>
+    
+    <!-- Keep the job loaded -->
+    <key>KeepAlive</key>
+    <false/>
+    
+    <!-- Allow the system to start this job even when on battery -->
+    <key>StartOnMount</key>
+    <false/>
+    
+    <!-- Process priority (nice value) -->
+    <key>Nice</key>
+    <integer>1</integer>
+    
+    <!-- Resource limits -->
+    <key>SoftResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>1024</integer>
+    </dict>
+    
+    <!-- Security and permissions -->
+    <key>UserName</key>
+    <string>nivedhrajesh</string>
+    
+    <!-- Timeout settings -->
+    <key>TimeOut</key>
+    <integer>3600</integer>
+    
+    <!-- Exit timeout -->
+    <key>ExitTimeOut</key>
+    <integer>30</integer>
+    
+    <!-- Throttle interval (minimum time between launches) -->
+    <key>ThrottleInterval</key>
+    <integer>60</integer>
+    
+    <!-- Additional launchd options for reliability -->
+    <key>ProcessType</key>
+    <string>Background</string>
+    
+    <!-- Enable low priority I/O -->
+    <key>LowPriorityIO</key>
+    <true/>
+    
+    <!-- Abandon process group -->
+    <key>AbandonProcessGroup</key>
+    <true/>
+</dict>
+</plist>
