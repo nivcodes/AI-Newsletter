@@ -27,7 +27,7 @@ holidays>=0.34
 # convertkit-python>=1.0.0
 
 # Data processing and caching
-sqlite3  # built-in
+# sqlite3 is built into Python, no separate installation needed
 # redis>=4.0.0  # optional for advanced caching
 
 # Web scraping enhancements
