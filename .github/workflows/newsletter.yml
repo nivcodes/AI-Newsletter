@@ -44,6 +44,13 @@ jobs:
     - name: Create output directory
       run: mkdir -p output logs
     
+    - name: Debug configuration
+      run: |
+        echo "🔧 Checking transformer configuration..."
+        echo "USE_TRANSFORMER from config: true (hardcoded)"
+        echo "PREFERRED_LLM from secrets: ${{ secrets.PREFERRED_LLM }}"
+        echo "USE_EXTERNAL_LLM from secrets: ${{ secrets.USE_EXTERNAL_LLM }}"
+    
     - name: Set up environment variables
       env:
         EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
@@ -68,9 +75,13 @@ jobs:
         echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> .env
         echo "USE_EXTERNAL_LLM=$USE_EXTERNAL_LLM" >> .env
         echo "PREFERRED_LLM=$PREFERRED_LLM" >> .env
-        # Set transformer as default (free model)
+        # Set transformer as default (free model) - override any secrets
         echo "USE_TRANSFORMER=true" >> .env
         echo "TRANSFORMER_MODEL=google/flan-t5-large" >> .env
+        # Force transformer as preferred LLM if not explicitly set to external
+        if [ -z "$PREFERRED_LLM" ] || [ "$PREFERRED_LLM" = "" ]; then
+          echo "PREFERRED_LLM=transformer" >> .env
+        fi
     
     - name: Run newsletter scheduler (Normal)
       if: ${{ !github.event.inputs.force_run && !github.event.inputs.dry_run }}

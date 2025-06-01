@@ -114,17 +114,28 @@ class EnhancedSummarizer:
     
     def call_best_available_llm(self, prompt, temperature=0.7):
         """Call the best available LLM based on configuration"""
+        # Debug configuration
+        logger.info(f"🔧 Configuration: USE_TRANSFORMER={USE_TRANSFORMER}, PREFERRED_LLM={PREFERRED_LLM}")
+        
         # Use transformer model if configured (default and free)
         if USE_TRANSFORMER and PREFERRED_LLM == "transformer":
+            logger.info("🤖 Attempting to use transformer model...")
             try:
                 from .transformer_summarizer import get_summarizer
+                logger.info("✅ Transformer summarizer imported successfully")
                 transformer_summarizer = get_summarizer()
+                logger.info("✅ Transformer summarizer instance created")
                 result = transformer_summarizer.generate_text(prompt, temperature=temperature)
                 if result:
+                    logger.info("✅ Transformer model generated response successfully")
                     return result
+                else:
+                    logger.error("❌ Transformer model returned empty result")
             except Exception as e:
-                logger.error(f"Transformer model failed: {e}")
-                logger.info("Falling back to external APIs...")
+                logger.error(f"❌ Transformer model failed: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
+                logger.info("⚠️ Falling back to external APIs...")
         
         # Use external APIs if configured
         if USE_EXTERNAL_LLM:
