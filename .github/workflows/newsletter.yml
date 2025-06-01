@@ -68,6 +68,9 @@ jobs:
         echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> .env
         echo "USE_EXTERNAL_LLM=$USE_EXTERNAL_LLM" >> .env
         echo "PREFERRED_LLM=$PREFERRED_LLM" >> .env
+        # Set transformer as default (free model)
+        echo "USE_TRANSFORMER=true" >> .env
+        echo "TRANSFORMER_MODEL=google/flan-t5-large" >> .env
     
     - name: Run newsletter scheduler (Normal)
       if: ${{ !github.event.inputs.force_run && !github.event.inputs.dry_run }}

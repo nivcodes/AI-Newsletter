@@ -49,11 +49,15 @@ API_SOURCES = {
 LLM_API_URL = "http://localhost:1234/v1/chat/completions"
 MODEL_NAME = "mistral-7b-instruct-v0.1.Q4_K_M"
 
-# External LLM APIs (preferred for quality)
+# External LLM APIs (optional - now using free transformers by default)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 USE_EXTERNAL_LLM = os.getenv("USE_EXTERNAL_LLM", "false").lower() == "true"
-PREFERRED_LLM = os.getenv("PREFERRED_LLM", "local")  # local, openai, anthropic
+PREFERRED_LLM = os.getenv("PREFERRED_LLM", "transformer")  # transformer, local, openai, anthropic
+
+# Transformer Model Configuration (free alternative)
+USE_TRANSFORMER = os.getenv("USE_TRANSFORMER", "true").lower() == "true"
+TRANSFORMER_MODEL = os.getenv("TRANSFORMER_MODEL", "google/flan-t5-large")
 
 # === ENHANCED AI CONTENT FILTERING ===
 AI_KEYWORDS = [

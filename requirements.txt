@@ -9,9 +9,15 @@ lxml==4.9.3
 # Environment variable management
 python-dotenv==1.0.0
 
-# Enhanced LLM APIs
+# Enhanced LLM APIs (optional - now using free transformers)
 openai>=1.0.0
 anthropic>=0.8.0
+
+# Hugging Face Transformers for free AI generation
+torch>=2.0.0
+transformers>=4.30.0
+tokenizers>=0.13.0
+sentencepiece>=0.1.99
 
 # Image processing and fetching
 Pillow>=9.0.0

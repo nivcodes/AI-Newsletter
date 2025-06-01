@@ -8,7 +8,7 @@ from datetime import datetime
 from config import (
     LLM_API_URL, MODEL_NAME, DELAY_BETWEEN_SUMMARIES,
     OPENAI_API_KEY, ANTHROPIC_API_KEY, USE_EXTERNAL_LLM, PREFERRED_LLM,
-    CATEGORIES
+    USE_TRANSFORMER, TRANSFORMER_MODEL, CATEGORIES
 )
 
 # Set up logging
@@ -114,6 +114,19 @@ class EnhancedSummarizer:
     
     def call_best_available_llm(self, prompt, temperature=0.7):
         """Call the best available LLM based on configuration"""
+        # Use transformer model if configured (default and free)
+        if USE_TRANSFORMER and PREFERRED_LLM == "transformer":
+            try:
+                from .transformer_summarizer import get_summarizer
+                transformer_summarizer = get_summarizer()
+                result = transformer_summarizer.generate_text(prompt, temperature=temperature)
+                if result:
+                    return result
+            except Exception as e:
+                logger.error(f"Transformer model failed: {e}")
+                logger.info("Falling back to external APIs...")
+        
+        # Use external APIs if configured
         if USE_EXTERNAL_LLM:
             if PREFERRED_LLM == "openai" and self.openai_client:
                 result = self.call_openai(prompt, temperature)
