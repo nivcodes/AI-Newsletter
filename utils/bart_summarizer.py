@@ -56,6 +56,11 @@ class BartNewsletterSummarizer:
             logger.error(f"❌ Failed to load BART model: {e}")
             raise
     
+    def generate_text(self, prompt: str, max_length: int = 200, temperature: float = 0.7) -> str:
+        """Generate text using BART (compatibility method for enhanced_summarizer)"""
+        # For BART, we'll use the prompt as input text and summarize it
+        return self.summarize_text(prompt, max_length=max_length, min_length=max_length//4)
+    
     def summarize_text(self, text: str, max_length: int = 200, min_length: int = 50) -> str:
         """Generate summary using BART's native summarization capabilities"""
         if self.model is None:
