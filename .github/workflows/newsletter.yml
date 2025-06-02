@@ -87,7 +87,7 @@ jobs:
         echo "PREFERRED_LLM=$PREFERRED_LLM" >> .env
         # Set transformer as default (free model) - override any secrets
         echo "USE_TRANSFORMER=true" >> .env
-        echo "TRANSFORMER_MODEL=google/flan-t5-large" >> .env
+        echo "TRANSFORMER_MODEL=facebook/bart-large-cnn" >> .env
         # Force transformer as preferred LLM if not explicitly set to external
         if [ -z "$PREFERRED_LLM" ] || [ "$PREFERRED_LLM" = "" ]; then
           echo "PREFERRED_LLM=transformer" >> .env

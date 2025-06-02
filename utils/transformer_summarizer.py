@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 from typing import List, Dict, Optional
 import torch
-from transformers import T5ForConditionalGeneration, T5Tokenizer
+from transformers import BartForConditionalGeneration, BartTokenizer, T5ForConditionalGeneration, T5Tokenizer
 from config import CATEGORIES
 
 # Set up logging
@@ -291,7 +291,13 @@ def get_summarizer():
     """Get or create the global summarizer instance"""
     global _summarizer_instance
     if _summarizer_instance is None:
-        _summarizer_instance = HuggingFaceTransformerSummarizer()
+        from config import TRANSFORMER_MODEL
+        # Use BART summarizer for BART models, T5 for others
+        if "bart" in TRANSFORMER_MODEL.lower():
+            from .bart_summarizer import get_bart_summarizer
+            return get_bart_summarizer()
+        else:
+            _summarizer_instance = HuggingFaceTransformerSummarizer(TRANSFORMER_MODEL)
     return _summarizer_instance
 
 

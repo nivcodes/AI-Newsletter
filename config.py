@@ -57,7 +57,7 @@ PREFERRED_LLM = os.getenv("PREFERRED_LLM", "transformer")  # transformer, local,
 
 # Transformer Model Configuration (free alternative)
 USE_TRANSFORMER = os.getenv("USE_TRANSFORMER", "true").lower() == "true"
-TRANSFORMER_MODEL = os.getenv("TRANSFORMER_MODEL", "google/flan-t5-large")
+TRANSFORMER_MODEL = os.getenv("TRANSFORMER_MODEL", "facebook/bart-large-cnn")
 
 # === ENHANCED AI CONTENT FILTERING ===
 AI_KEYWORDS = [
