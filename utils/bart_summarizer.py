@@ -96,52 +96,77 @@ class BartNewsletterSummarizer:
             return None
     
     def get_editorial_summary(self, article: Dict) -> str:
-        """Generate editorial-style summary using BART's summarization + formatting"""
+        """Generate editorial-style summary using BART's summarization + proper formatting"""
         category = article.get('category', 'misc')
         category_config = CATEGORIES.get(category, CATEGORIES['misc'])
         
-        # First, get a high-quality summary from BART
-        article_text = article['text'][:2000]  # Use more text for better context
-        base_summary = self.summarize_text(article_text, max_length=150, min_length=50)
+        # Get a clean summary from BART (no prompts, just the article text)
+        article_text = article['text'][:2000]
+        base_summary = self.summarize_text(article_text, max_length=120, min_length=40)
         
         if not base_summary:
             return None
         
-        # Create editorial structure around the BART summary
+        # Clean up the summary (remove any prompt artifacts)
+        base_summary = base_summary.replace('You are the editor', '').replace('Write like a sharp', '').strip()
+        
+        # Create editorial structure
         title = article['title']
-        
-        # Extract key points from the summary
-        sentences = base_summary.split('. ')
-        
-        # Create compelling headline (truncate title if too long)
         headline = title[:55] + "..." if len(title) > 55 else title
         
-        # Build editorial format
+        # Split summary into sentences for bullet points
+        sentences = [s.strip() for s in base_summary.split('.') if s.strip()]
+        
+        # Build the editorial format
         summary = f"""## {category_config['emoji']} **{headline}**
 
-**The Rundown:** {sentences[0] if sentences else base_summary[:100]}
+**The Rundown:** {sentences[0] if sentences else base_summary[:100]}.
 
 """
         
-        # Add bullet points from remaining sentences
+        # Create bullet points from key information
         if len(sentences) > 1:
-            for i, sentence in enumerate(sentences[1:4]):  # Up to 3 bullet points
-                if sentence.strip():
-                    summary += f"• {sentence.strip()}\n"
-        else:
-            # If only one sentence, create bullet points from key phrases
-            summary += f"• {base_summary[:80]}...\n"
-            summary += f"• Key development in {category_config['title'].lower()}\n"
+            for sentence in sentences[1:4]:  # Up to 3 more sentences as bullets
+                if sentence and len(sentence) > 10:  # Only meaningful sentences
+                    summary += f"• {sentence}.\n"
         
-        # Add "Why it matters" section
+        # Add contextual bullet if we don't have enough
+        if len(sentences) <= 2:
+            summary += f"• Significant development in {category_config['title'].lower()}\n"
+        
+        # Create a meaningful "Why it matters" based on category
+        why_matters = self._get_why_it_matters(category, article['title'])
+        
         summary += f"""
-**Why it matters:** This development in {category_config['title'].lower()} represents a significant advancement for AI developers and researchers. The implications could reshape how we approach {category.replace('-', ' ')} in the AI ecosystem.
+**Why it matters:** {why_matters}
 
 [👉 Read more]({article['url']})
 
 ---"""
         
         return summary
+    
+    def _get_why_it_matters(self, category: str, title: str) -> str:
+        """Generate contextual 'why it matters' based on category and title"""
+        category_insights = {
+            'research': "This research could influence future AI model development and provide insights for developers building next-generation applications.",
+            'tools': "This tool development could streamline AI workflows and provide new capabilities for developers and researchers in their projects.",
+            'industry': "This industry move signals broader market trends that could impact AI funding, partnerships, and strategic decisions for founders and companies.",
+            'use-case': "This application demonstrates practical AI implementation strategies that developers can adapt for their own use cases.",
+            'misc': "This development highlights emerging trends in the AI ecosystem that could influence future technology decisions."
+        }
+        
+        base_insight = category_insights.get(category, category_insights['misc'])
+        
+        # Add specific context based on title keywords
+        if any(word in title.lower() for word in ['funding', 'investment', 'raises']):
+            base_insight += " The funding landscape provides signals about which AI approaches investors see as most promising."
+        elif any(word in title.lower() for word in ['open source', 'open-source']):
+            base_insight += " Open source developments often accelerate innovation and provide accessible alternatives for developers."
+        elif any(word in title.lower() for word in ['model', 'llm', 'ai']):
+            base_insight += " Model improvements directly impact the capabilities available to AI practitioners and researchers."
+        
+        return base_insight
     
     def get_editors_take(self, article: Dict) -> Optional[str]:
         """Generate Editor's Take using BART summarization"""
@@ -163,7 +188,7 @@ class BartNewsletterSummarizer:
         return take
     
     def generate_newsletter_intro(self, articles: List[Dict]) -> str:
-        """Generate newsletter introduction using article summaries"""
+        """Generate clean newsletter introduction"""
         # Get top categories
         categories = {}
         for article in articles:
@@ -172,23 +197,51 @@ class BartNewsletterSummarizer:
         
         top_categories = sorted(categories.items(), key=lambda x: x[1], reverse=True)[:3]
         
-        # Create intro text for BART to summarize
-        intro_text = f"""Today's AI newsletter covers {len(articles)} key developments across {len(categories)} categories. 
+        # Create a clean, professional intro without using BART (to avoid prompt artifacts)
+        category_names = [CATEGORIES[cat]['title'] for cat, _ in top_categories]
         
-Main focus areas: {', '.join([CATEGORIES[cat]['title'] for cat, _ in top_categories])}. 
+        # Build intro based on the day's content
+        if len(articles) >= 8:
+            intensity = "packed"
+        elif len(articles) >= 5:
+            intensity = "busy"
+        else:
+            intensity = "focused"
         
-Top stories include: {'. '.join([article['title'] for article in articles[:3]])}.
-        
-These developments represent significant advances in artificial intelligence, machine learning, and related technologies that will impact developers, founders, and researchers."""
-        
-        # Use BART to create a polished intro
-        intro = self.summarize_text(intro_text, max_length=120, min_length=60)
-        
-        if not intro:
-            # Fallback intro
-            intro = f"Today's AI digest highlights {len(articles)} key developments across {', '.join([CATEGORIES[cat]['title'] for cat, _ in top_categories[:2]])} and more. From breakthrough research to industry moves, here's what's shaping the AI landscape today."
+        intro = f"""It's a {intensity} day in AI with {len(articles)} key developments spanning {', '.join(category_names[:2])}{',' if len(category_names) > 2 else ' and'} {category_names[-1] if len(category_names) > 2 else ''}.
+
+From {self._get_intro_theme(articles)} to {self._get_secondary_theme(articles)}, today's digest captures the moves shaping AI's trajectory. Here's what developers, founders, and researchers need to know."""
         
         return intro
+    
+    def _get_intro_theme(self, articles: List[Dict]) -> str:
+        """Get primary theme for intro based on articles"""
+        # Look for common themes in titles
+        titles_text = ' '.join([article['title'].lower() for article in articles[:5]])
+        
+        if any(word in titles_text for word in ['funding', 'raises', 'investment']):
+            return "major funding rounds"
+        elif any(word in titles_text for word in ['model', 'llm', 'gpt']):
+            return "breakthrough model releases"
+        elif any(word in titles_text for word in ['tool', 'api', 'platform']):
+            return "new developer tools"
+        elif any(word in titles_text for word in ['research', 'study', 'paper']):
+            return "cutting-edge research"
+        else:
+            return "industry developments"
+    
+    def _get_secondary_theme(self, articles: List[Dict]) -> str:
+        """Get secondary theme for intro"""
+        titles_text = ' '.join([article['title'].lower() for article in articles])
+        
+        if any(word in titles_text for word in ['partnership', 'acquisition', 'deal']):
+            return "strategic partnerships"
+        elif any(word in titles_text for word in ['open source', 'open-source']):
+            return "open source innovations"
+        elif any(word in titles_text for word in ['regulation', 'policy', 'government']):
+            return "policy developments"
+        else:
+            return "technical breakthroughs"
     
     def summarize_articles(self, articles: List[Dict], style: str = "editorial") -> tuple:
         """Summarize articles using BART"""
