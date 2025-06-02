@@ -124,12 +124,20 @@ def generate_and_send_newsletter():
         logger.info("✅ Newsletter generated successfully")
         log_github_actions_output("Newsletter generated successfully")
         
+        # Debug: Show what files were actually generated
+        files_dict = result.get('files', {})
+        logger.info(f"📁 Files generated: {list(files_dict.keys())}")
+        log_github_actions_output(f"Files available: {list(files_dict.keys())}")
+        
         # Send newsletter
-        html_file = result['files'].get('email_html') or result['files'].get('premium_html')
+        html_file = files_dict.get('email_html') or files_dict.get('premium_html') or files_dict.get('fixed_html')
         if not html_file:
-            error_msg = "No HTML file found to send"
+            error_msg = f"No HTML file found to send. Available files: {list(files_dict.keys())}"
             log_github_actions_output(error_msg, is_error=True)
             return False, error_msg, result.get('stats', {})
+        
+        logger.info(f"📧 Using HTML file: {html_file}")
+        log_github_actions_output(f"Using HTML file: {html_file}")
         
         logger.info("📧 Sending newsletter email...")
         email_success = send_enhanced_newsletter(html_file)

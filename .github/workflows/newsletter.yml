@@ -21,6 +21,16 @@ on:
         required: false
         default: 'false'
         type: boolean
+      send_only:
+        description: 'Send existing newsletter without regenerating'
+        required: false
+        default: 'false'
+        type: boolean
+      html_file:
+        description: 'Specific HTML file to send (optional)'
+        required: false
+        default: 'output/newsletter_fixed.html'
+        type: string
 
 jobs:
   send-newsletter:
@@ -94,6 +104,24 @@ jobs:
     - name: Run newsletter scheduler (Dry Run)
       if: ${{ github.event.inputs.dry_run == 'true' }}
       run: python newsletter_scheduler_github.py --dry-run
+    
+    - name: Send existing newsletter (Send Only)
+      if: ${{ github.event.inputs.send_only == 'true' }}
+      run: |
+        echo "📧 Send-only mode: Using existing HTML file"
+        HTML_FILE="${{ github.event.inputs.html_file }}"
+        echo "📁 HTML file to send: $HTML_FILE"
+        
+        # Check if file exists
+        if [ -f "$HTML_FILE" ]; then
+          echo "✅ HTML file found: $HTML_FILE"
+          python enhanced_newsletter_generator.py --send-only --html-file "$HTML_FILE"
+        else
+          echo "❌ HTML file not found: $HTML_FILE"
+          echo "📂 Available files in output directory:"
+          ls -la output/ || echo "Output directory not found"
+          exit 1
+        fi
     
     - name: Upload newsletter artifacts
       if: always()

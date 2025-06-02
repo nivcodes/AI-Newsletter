@@ -467,19 +467,26 @@ class FixedHTMLProcessor:
         return output_path
     
     def save_all_formats(self, content):
-        """Save newsletter in fixed format"""
+        """Save newsletter in multiple formats with expected file keys"""
         logger.info("💾 Saving fixed newsletter...")
         
         saved_files = {}
         
         try:
-            # Fixed HTML
-            saved_files['fixed_html'] = self.generate_fixed_html(content)
+            # Generate the HTML content
+            html_path = self.generate_fixed_html(content)
             
-            logger.info(f"✅ Saved fixed format successfully")
+            # Save with multiple keys that the main generator expects
+            saved_files['fixed_html'] = html_path
+            saved_files['email_html'] = html_path  # For email sending
+            saved_files['premium_html'] = html_path  # Alternative key
+            saved_files['styled_html'] = html_path  # Another alternative
+            
+            logger.info(f"✅ Saved newsletter in multiple formats successfully")
+            logger.info(f"📁 Available file keys: {list(saved_files.keys())}")
             
         except Exception as e:
-            logger.error(f"Error saving fixed format: {e}")
+            logger.error(f"Error saving newsletter formats: {e}")
         
         return saved_files
 
