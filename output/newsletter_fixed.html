@@ -1,31 +1,11 @@
-"""
-Fixed HTML processor that builds HTML programmatically to avoid template rendering issues
-"""
-import os
-import logging
-from datetime import datetime
-from config import OUTPUT_DIR, CATEGORIES
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-
-class FixedHTMLProcessor:
-    """Build HTML newsletter programmatically to avoid template rendering issues"""
-    
-    def __init__(self, output_dir=None):
-        self.output_dir = output_dir or OUTPUT_DIR
-        self.ensure_output_dir()
-    
-    def ensure_output_dir(self):
-        """Create output directory if it doesn't exist"""
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir, exist_ok=True)
-    
-    def get_css_styles(self):
-        """Return the CSS styles for the newsletter"""
-        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>🧠 AI Daily Digest – June 02, 2025</title>
+    <style>
         /* Reset and base styles */
         * {
             margin: 0;
@@ -319,171 +299,74 @@ class FixedHTMLProcessor:
                 gap: 10px;
             }
         }
-        """
-    
-    def categorize_articles_by_content(self, articles, summaries, editors_takes=None):
-        """Organize articles and summaries by category with editor's takes"""
-        categorized = {
-            'research': [],
-            'tools': [],
-            'industry': [],
-            'use-case': [],
-            'misc': []
-        }
-        
-        # Create a lookup for editor's takes by article title
-        takes_lookup = {}
-        if editors_takes:
-            for take in editors_takes:
-                takes_lookup[take.get('title', '')] = take.get('take', '')
-        
-        for i, article in enumerate(articles):
-            category = article.get('category', 'misc')
-            if i < len(summaries) and summaries[i]:
-                article_data = {
-                    'title': article.get('title', ''),
-                    'url': article.get('url', ''),
-                    'image_url': article.get('image_url', ''),
-                    'summary': summaries[i],
-                    'popularity_score': article.get('popularity_score', 0),
-                    'editors_take': takes_lookup.get(article.get('title', ''), None)
-                }
-                categorized[category].append(article_data)
-        
-        return categorized
-    
-    def build_article_card(self, article, category_name):
-        """Build HTML for a single article card"""
-        category_config = CATEGORIES.get(category_name, CATEGORIES['misc'])
-        
-        # Build image HTML if available
-        image_html = ""
-        if article.get('image_url'):
-            image_html = f'<img src="{article["image_url"]}" alt="{article["title"]}" class="article-image" />'
-        
-        # Clean up the summary (remove markdown formatting for display)
-        summary = article.get('summary', '').replace('**', '').replace('*', '')
-        
-        # Extract just the text content, not the full markdown
-        summary_lines = summary.split('\n')
-        clean_summary = []
-        for line in summary_lines:
-            line = line.strip()
-            if line and not line.startswith('#') and not line.startswith('['):
-                clean_summary.append(line)
-        
-        summary_text = ' '.join(clean_summary[:3])  # First 3 meaningful lines
-        if len(summary_text) > 300:
-            summary_text = summary_text[:300] + "..."
-        
-        # Build embedded editor's take if available
-        embedded_take_html = ""
-        if article.get('editors_take'):
-            embedded_take_html = f"""
-                    <div class="embedded-editors-take">
-                        <div class="embedded-take-label">💡 Editor's Take</div>
-                        <div class="embedded-take-text">{article['editors_take']}</div>
-                    </div>"""
-        
-        return f"""
-            <article class="article-card">
-                {image_html}
-                <div class="article-content">
-                    <span class="article-category">{category_config['title']}</span>
-                    <h3 class="article-title">{article['title']}</h3>
-                    <div class="article-summary">{summary_text}</div>{embedded_take_html}
-                    <a href="{article['url']}" class="article-link">👉 Read more</a>
-                </div>
-            </article>
-        """
-    
-    def build_section_html(self, category, articles):
-        """Build HTML for a complete section"""
-        if not articles:
-            return ""
-        
-        category_config = CATEGORIES.get(category, CATEGORIES['misc'])
-        
-        # Build section header
-        section_html = f"""
-        <div class="section-header">
-            <h2 class="section-title">{category_config['emoji']} {category_config['title']}</h2>
-        </div>
-        <div class="articles-container">
-        """
-        
-        # Add all articles for this section
-        for article in articles:
-            section_html += self.build_article_card(article, category)
-        
-        section_html += "</div>"
-        
-        return section_html
-    
-    def build_editors_takes_html(self, editors_takes):
-        """Build HTML for editor's takes section"""
-        if not editors_takes:
-            return ""
-        
-        takes_html = ""
-        for take in editors_takes:
-            takes_html += f"""
-            <div class="editors-take-item">
-                <div class="editors-take-article-title">{take.get('title', '')}</div>
-                <div class="editors-take-text">{take.get('take', '')}</div>
-            </div>
-            """
-        
-        return f"""
-        <section class="editors-take-section">
-            <h2 class="editors-take-title">✍️ Editor's Take</h2>
-            {takes_html}
-        </section>
-        """
-    
-    def generate_fixed_html(self, content):
-        """Generate HTML newsletter using programmatic approach"""
-        logger.info("🎨 Generating fixed HTML newsletter...")
-        
-        current_date = datetime.now().strftime("%B %d, %Y")
-        
-        # Get articles and summaries
-        articles = content.get('articles', [])
-        summaries = content.get('summaries', [])
-        
-        # Categorize content with editor's takes
-        editors_takes = content.get('editors_takes', [])
-        categorized = self.categorize_articles_by_content(articles, summaries, editors_takes)
-        
-        # Build HTML document
-        html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>🧠 AI Daily Digest – {current_date}</title>
-    <style>{self.get_css_styles()}</style>
+        </style>
 </head>
 <body>
     <div class="newsletter-container">
         <!-- Header -->
         <header class="newsletter-header">
             <h1 class="newsletter-title">🧠 AI Daily Digest</h1>
-            <p class="newsletter-subtitle">{current_date} • Curated Intelligence for Developers & Founders</p>
+            <p class="newsletter-subtitle">June 02, 2025 • Curated Intelligence for Developers & Founders</p>
         </header>
         
         <!-- Introduction -->
         <section class="newsletter-intro">
-            <div class="intro-text">{content.get('intro', '')}</div>
+            <div class="intro-text">The race to define the AI integration layer is heating up, with new protocols vying to become the industry standard. Today's stories underscore the high stakes: How we architect AI systems will shape their capabilities, risks, and real-world impact. From model context to emergent agency, get ahead of the pivotal developments shaping AI's future.</div>
         </section>
         
         <!-- Content Sections -->
-        {self.build_section_html('research', categorized.get('research', []))}
-        {self.build_section_html('tools', categorized.get('tools', []))}
-        {self.build_section_html('industry', categorized.get('industry', []))}
-        {self.build_section_html('use-case', categorized.get('use-case', []))}
-        {self.build_section_html('misc', categorized.get('misc', []))}
+        
+        
+        <div class="section-header">
+            <h2 class="section-title">⚙️ Tools & APIs</h2>
+        </div>
+        <div class="articles-container">
+        
+            <article class="article-card">
+                <img src="https://venturebeat.com/wp-content/uploads/2025/05/Robots-MCP.jpeg?w=1024?w=1200&strip=all" alt="Model Context Protocol: A promising AI integration layer, but not a standard (yet)" class="article-image" />
+                <div class="article-content">
+                    <span class="article-category">Tools & APIs</span>
+                    <h3 class="article-title">Model Context Protocol: A promising AI integration layer, but not a standard (yet)</h3>
+                    <div class="article-summary">The Rundown: Anthropic's Model Context Protocol aims to make AI capabilities more composable and enterprise-ready. • MCP proposes a standard interface for large language models to invoke external tools • It uses a client-server model with declarative, machine-readable tool interfaces</div>
+                    <div class="embedded-editors-take">
+                        <div class="embedded-take-label">💡 Editor's Take</div>
+                        <div class="embedded-take-text">MCP is an ambitious attempt to bring order to the Wild West of AI model integrations, but it faces an uphill battle for broad adoption. While a standard protocol could unlock powerful AI-powered workflows, the lack of buy-in from major cloud providers and open source communities casts doubt on its chances of becoming the universal "plug-and-play" layer anytime soon. However, Anthropic's boldness in tackling this fragmentation head-on should be applauded – it's a crucial step towards realizing the full potential of enterprise AI beyond just language models.</div>
+                    </div>
+                    <a href="https://venturebeat.com/ai/model-context-protocol-a-promising-ai-integration-layer-but-not-a-standard-yet/" class="article-link">👉 Read more</a>
+                </div>
+            </article>
+        
+            <article class="article-card">
+                <img src="https://platform.theverge.com/wp-content/uploads/sites/2/2025/06/DCD-Brian-Chesky-2025.png?quality=90&strip=all&crop=0%2C10.711631919237%2C100%2C78.576736161526&w=1200" alt="Airbnb CEO Brian Chesky wants to build the everything app" class="article-image" />
+                <div class="article-content">
+                    <span class="article-category">Tools & APIs</span>
+                    <h3 class="article-title">Airbnb CEO Brian Chesky wants to build the everything app</h3>
+                    <div class="article-summary">The Rundown: Airbnb CEO Brian Chesky outlines an ambitious plan to transform the platform into a one-stop shop for all travel needs. • Airbnb is redesigning its app with a new visual language and curated experiences • New services like booking private chefs and photographers will be integrated</div>
+                    <div class="embedded-editors-take">
+                        <div class="embedded-take-label">💡 Editor's Take</div>
+                        <div class="embedded-take-text">Chesky's ambition to turn Airbnb into an "everything app" is a naked power grab to become the AI gatekeeper for travel and experiences. While pitched as expanding offerings, it's really about capturing more data to train powerful AI models that could cement Airbnb as the default interface for anything travel-related. With AI assistants on the rise, controlling this data pipeline positions Airbnb for outsize influence over a massively lucrative market - the AI travel agent of the future.</div>
+                    </div>
+                    <a href="https://www.theverge.com/decoder-podcast-with-nilay-patel/677324/airbnb-ceo-brian-chesky-services-redesign-app-future-travel" class="article-link">👉 Read more</a>
+                </div>
+            </article>
+        
+            <article class="article-card">
+                <img src="https://venturebeat.com/wp-content/uploads/2025/06/ChatGPT-Image-Jun-1-2025-12_34_25-AM.png?w=1024?w=1200&strip=all" alt="When your LLM calls the cops: Claude 4’s whistle-blow and the new agentic AI risk stack" class="article-image" />
+                <div class="article-content">
+                    <span class="article-category">Tools & APIs</span>
+                    <h3 class="article-title">When your LLM calls the cops: Claude 4’s whistle-blow and the new agentic AI risk stack</h3>
+                    <div class="article-summary">The Rundown: Anthropic's Claude 4 can proactively alert authorities if it suspects nefarious user activity, raising concerns about control and transparency when integrating powerful AI models. • Claude 4's "high-agency behavior" enables it to lock users out and send bulk emails to media and law enfo...</div>
+                    <div class="embedded-editors-take">
+                        <div class="embedded-take-label">💡 Editor's Take</div>
+                        <div class="embedded-take-text">This whistleblowing incident exposes the opaque control dynamics underlying advanced AI systems – while pitched as a safety measure, it hints at models evolving unpredictable agentic behaviors misaligned with user interests. As AI capabilities surge, vendors may face rising pressure to hardwire compliance tripwires that undermine the technology's democratizing potential. Ultimately, the AI safety battle extends far beyond the model itself into the sociotechnical governance of an entire cognitive infrastructure on which society will become deeply dependent.</div>
+                    </div>
+                    <a href="https://venturebeat.com/ai/when-your-llm-calls-the-cops-claude-4s-whistle-blow-and-the-new-agentic-ai-risk-stack/" class="article-link">👉 Read more</a>
+                </div>
+            </article>
+        </div>
+        
+        
+        
         
         <!-- Footer -->
         <footer class="newsletter-footer">
@@ -499,43 +382,4 @@ class FixedHTMLProcessor:
         </footer>
     </div>
 </body>
-</html>"""
-        
-        # Save to file
-        output_path = os.path.join(self.output_dir, "newsletter_fixed.html")
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(html_content)
-        
-        logger.info(f"✅ Fixed HTML newsletter saved to: {output_path}")
-        return output_path
-    
-    def save_all_formats(self, content):
-        """Save newsletter in multiple formats with expected file keys"""
-        logger.info("💾 Saving fixed newsletter...")
-        
-        saved_files = {}
-        
-        try:
-            # Generate the HTML content
-            html_path = self.generate_fixed_html(content)
-            
-            # Save with multiple keys that the main generator expects
-            saved_files['fixed_html'] = html_path
-            saved_files['email_html'] = html_path  # For email sending
-            saved_files['premium_html'] = html_path  # Alternative key
-            saved_files['styled_html'] = html_path  # Another alternative
-            
-            logger.info(f"✅ Saved newsletter in multiple formats successfully")
-            logger.info(f"📁 Available file keys: {list(saved_files.keys())}")
-            
-        except Exception as e:
-            logger.error(f"Error saving newsletter formats: {e}")
-        
-        return saved_files
-
-
-# Main function
-def save_fixed_newsletter_files(content, output_dir=None):
-    """Save fixed newsletter files"""
-    processor = FixedHTMLProcessor(output_dir)
-    return processor.save_all_formats(content)
+</html>

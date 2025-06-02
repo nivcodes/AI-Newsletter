@@ -12,6 +12,7 @@ python-dotenv==1.0.0
 # Enhanced LLM APIs (optional - now using free transformers)
 openai>=1.0.0
 anthropic>=0.8.0
+boto3>=1.26.0  # For AWS Bedrock (Anthropic via AWS)
 
 # Hugging Face Transformers for free AI generation
 torch>=2.0.0

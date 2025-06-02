@@ -53,7 +53,14 @@ MODEL_NAME = "mistral-7b-instruct-v0.1.Q4_K_M"
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 USE_EXTERNAL_LLM = os.getenv("USE_EXTERNAL_LLM", "false").lower() == "true"
-PREFERRED_LLM = os.getenv("PREFERRED_LLM", "transformer")  # transformer, local, openai, anthropic
+PREFERRED_LLM = os.getenv("PREFERRED_LLM", "transformer")  # transformer, local, openai, anthropic, aws-anthropic
+
+# AWS Bedrock Configuration (for Anthropic via AWS)
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_BEDROCK_MODEL_ID = os.getenv("AWS_BEDROCK_MODEL_ID", "anthropic.claude-3-sonnet-20240229-v1:0")
+USE_AWS_BEDROCK = os.getenv("USE_AWS_BEDROCK", "false").lower() == "true"
 
 # Transformer Model Configuration (free alternative)
 USE_TRANSFORMER = os.getenv("USE_TRANSFORMER", "true").lower() == "true"

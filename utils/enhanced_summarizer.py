@@ -8,7 +8,9 @@ from datetime import datetime
 from config import (
     LLM_API_URL, MODEL_NAME, DELAY_BETWEEN_SUMMARIES,
     OPENAI_API_KEY, ANTHROPIC_API_KEY, USE_EXTERNAL_LLM, PREFERRED_LLM,
-    USE_TRANSFORMER, TRANSFORMER_MODEL, CATEGORIES
+    USE_TRANSFORMER, TRANSFORMER_MODEL, CATEGORIES,
+    AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, 
+    AWS_BEDROCK_MODEL_ID, USE_AWS_BEDROCK
 )
 
 # Set up logging
@@ -30,6 +32,13 @@ except ImportError:
     ANTHROPIC_AVAILABLE = False
     logger.warning("Anthropic library not available. Install with: pip install anthropic")
 
+try:
+    import boto3
+    AWS_BEDROCK_AVAILABLE = True
+except ImportError:
+    AWS_BEDROCK_AVAILABLE = False
+    logger.warning("AWS boto3 library not available. Install with: pip install boto3")
+
 
 class EnhancedSummarizer:
     """Enhanced summarizer with multiple LLM backends and editorial prompts"""
@@ -41,6 +50,7 @@ class EnhancedSummarizer:
         """Initialize LLM clients based on configuration"""
         self.openai_client = None
         self.anthropic_client = None
+        self.bedrock_client = None
         
         if OPENAI_AVAILABLE and OPENAI_API_KEY:
             try:
@@ -55,6 +65,25 @@ class EnhancedSummarizer:
                 logger.info("✅ Anthropic client initialized")
             except Exception as e:
                 logger.error(f"Failed to initialize Anthropic client: {e}")
+        
+        if AWS_BEDROCK_AVAILABLE and USE_AWS_BEDROCK:
+            try:
+                if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
+                    self.bedrock_client = boto3.client(
+                        'bedrock-runtime',
+                        region_name=AWS_REGION,
+                        aws_access_key_id=AWS_ACCESS_KEY_ID,
+                        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+                    )
+                else:
+                    # Use default AWS credentials (IAM role, profile, etc.)
+                    self.bedrock_client = boto3.client(
+                        'bedrock-runtime',
+                        region_name=AWS_REGION
+                    )
+                logger.info("✅ AWS Bedrock client initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize AWS Bedrock client: {e}")
     
     def call_local_llm(self, prompt, temperature=0.7):
         """Call local LLM API (fallback)"""
@@ -112,6 +141,41 @@ class EnhancedSummarizer:
             logger.error(f"Anthropic API call failed: {e}")
             return None
     
+    def call_aws_bedrock(self, prompt, temperature=0.7, model_id=None):
+        """Call AWS Bedrock API for Anthropic Claude"""
+        if not self.bedrock_client:
+            return None
+        
+        try:
+            import json
+            
+            model_id = model_id or AWS_BEDROCK_MODEL_ID
+            
+            # Format request for Anthropic Claude via Bedrock
+            body = {
+                "anthropic_version": "bedrock-2023-05-31",
+                "max_tokens": 1000,
+                "temperature": temperature,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
+            }
+            
+            response = self.bedrock_client.invoke_model(
+                modelId=model_id,
+                body=json.dumps(body)
+            )
+            
+            response_body = json.loads(response['body'].read())
+            return response_body['content'][0]['text']
+            
+        except Exception as e:
+            logger.error(f"AWS Bedrock API call failed: {e}")
+            return None
+    
     def call_best_available_llm(self, prompt, temperature=0.7):
         """Call the best available LLM based on configuration"""
         # Debug configuration
@@ -138,8 +202,12 @@ class EnhancedSummarizer:
                 logger.info("⚠️ Falling back to external APIs...")
         
         # Use external APIs if configured
-        if USE_EXTERNAL_LLM:
-            if PREFERRED_LLM == "openai" and self.openai_client:
+        if USE_EXTERNAL_LLM or USE_AWS_BEDROCK:
+            if PREFERRED_LLM == "aws-anthropic" and self.bedrock_client:
+                result = self.call_aws_bedrock(prompt, temperature)
+                if result:
+                    return result
+            elif PREFERRED_LLM == "openai" and self.openai_client:
                 result = self.call_openai(prompt, temperature)
                 if result:
                     return result
@@ -149,6 +217,11 @@ class EnhancedSummarizer:
                     return result
             
             # Try other external APIs as fallback
+            if self.bedrock_client:
+                result = self.call_aws_bedrock(prompt, temperature)
+                if result:
+                    return result
+            
             if self.openai_client:
                 result = self.call_openai(prompt, temperature)
                 if result:
@@ -250,25 +323,25 @@ Format: Just the take itself, no headers or formatting.
         titles = [article['title'] for article in articles[:5]]
         
         prompt = f"""
-You are writing the opening of a premium AI newsletter for developers, founders, and researchers.
+You are writing a crisp executive brief for a premium AI newsletter read by busy developers, founders, and researchers.
 
 Today's top categories: {', '.join([f"{CATEGORIES[cat]['title']} ({count} stories)" for cat, count in top_categories])}
 
 Top story headlines:
 {chr(10).join([f"• {title}" for title in titles])}
 
-Write a compelling 2-paragraph introduction that:
-1. Sets the tone for today's digest with energy and insight
-2. Highlights the key themes or trends emerging from today's stories
-3. Makes readers excited to dive into the content
+Write a sharp, punchy introduction (2-3 sentences max) that:
+1. Captures the day's key AI development or trend in one compelling statement
+2. Sets up why these stories matter for your technical audience
+3. Creates urgency to read on
 
 Style: 
-- Conversational but authoritative
-- Forward-looking and analytical
-- Avoid generic phrases like "in today's newsletter"
-- Sound like a human curator, not a bot
+- Direct and authoritative (think Wall Street Journal meets TechCrunch)
+- No fluff or generic newsletter language
+- Lead with the most significant insight or trend
+- Sound like a sharp industry insider
 
-Keep it under 150 words total.
+Keep it under 75 words total. Start strong.
 """
         
         logger.info("✍️ Generating newsletter introduction...")
