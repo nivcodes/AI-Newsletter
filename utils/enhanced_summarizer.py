@@ -1,6 +1,7 @@
 """
 Enhanced LLM summarization utilities with external API support and editorial prompts
 """
+import os
 import requests
 import time
 import logging
@@ -180,10 +181,35 @@ class EnhancedSummarizer:
         """Call the best available LLM based on configuration"""
         # Debug configuration
         logger.info(f"🔧 Configuration: USE_TRANSFORMER={USE_TRANSFORMER}, PREFERRED_LLM={PREFERRED_LLM}")
+        logger.info(f"🔧 External APIs: USE_EXTERNAL_LLM={USE_EXTERNAL_LLM}, USE_AWS_BEDROCK={USE_AWS_BEDROCK}")
         
-        # Use transformer model if configured (default and free)
-        if USE_TRANSFORMER and PREFERRED_LLM == "transformer":
-            logger.info("🤖 Attempting to use transformer model...")
+        # Try preferred LLM first
+        if PREFERRED_LLM == "aws-anthropic" and self.bedrock_client:
+            logger.info("🤖 Using preferred AWS Bedrock (Anthropic)...")
+            result = self.call_aws_bedrock(prompt, temperature)
+            if result:
+                logger.info("✅ AWS Bedrock generated response successfully")
+                return result
+            else:
+                logger.warning("⚠️ AWS Bedrock failed, trying other options...")
+        elif PREFERRED_LLM == "openai" and self.openai_client:
+            logger.info("🤖 Using preferred OpenAI...")
+            result = self.call_openai(prompt, temperature)
+            if result:
+                logger.info("✅ OpenAI generated response successfully")
+                return result
+            else:
+                logger.warning("⚠️ OpenAI failed, trying other options...")
+        elif PREFERRED_LLM == "anthropic" and self.anthropic_client:
+            logger.info("🤖 Using preferred Anthropic...")
+            result = self.call_anthropic(prompt, temperature)
+            if result:
+                logger.info("✅ Anthropic generated response successfully")
+                return result
+            else:
+                logger.warning("⚠️ Anthropic failed, trying other options...")
+        elif PREFERRED_LLM == "transformer" and USE_TRANSFORMER:
+            logger.info("🤖 Using preferred transformer model...")
             try:
                 from .transformer_summarizer import get_summarizer
                 logger.info("✅ Transformer summarizer imported successfully")
@@ -194,45 +220,59 @@ class EnhancedSummarizer:
                     logger.info("✅ Transformer model generated response successfully")
                     return result
                 else:
-                    logger.error("❌ Transformer model returned empty result")
+                    logger.warning("⚠️ Transformer model returned empty result")
             except Exception as e:
-                logger.error(f"❌ Transformer model failed: {e}")
-                import traceback
-                logger.error(traceback.format_exc())
+                logger.warning(f"⚠️ Transformer model failed: {e}")
                 logger.info("⚠️ Falling back to external APIs...")
         
-        # Use external APIs if configured
+        # Try other available external APIs as fallback
         if USE_EXTERNAL_LLM or USE_AWS_BEDROCK:
-            if PREFERRED_LLM == "aws-anthropic" and self.bedrock_client:
+            logger.info("🔄 Trying fallback external APIs...")
+            
+            # Try AWS Bedrock if not already tried
+            if PREFERRED_LLM != "aws-anthropic" and self.bedrock_client:
+                logger.info("🔄 Trying AWS Bedrock as fallback...")
                 result = self.call_aws_bedrock(prompt, temperature)
                 if result:
+                    logger.info("✅ AWS Bedrock fallback successful")
                     return result
-            elif PREFERRED_LLM == "openai" and self.openai_client:
+            
+            # Try OpenAI if not already tried
+            if PREFERRED_LLM != "openai" and self.openai_client:
+                logger.info("🔄 Trying OpenAI as fallback...")
                 result = self.call_openai(prompt, temperature)
                 if result:
+                    logger.info("✅ OpenAI fallback successful")
                     return result
-            elif PREFERRED_LLM == "anthropic" and self.anthropic_client:
+            
+            # Try Anthropic if not already tried
+            if PREFERRED_LLM != "anthropic" and self.anthropic_client:
+                logger.info("🔄 Trying Anthropic as fallback...")
                 result = self.call_anthropic(prompt, temperature)
                 if result:
-                    return result
-            
-            # Try other external APIs as fallback
-            if self.bedrock_client:
-                result = self.call_aws_bedrock(prompt, temperature)
-                if result:
-                    return result
-            
-            if self.openai_client:
-                result = self.call_openai(prompt, temperature)
-                if result:
-                    return result
-            
-            if self.anthropic_client:
-                result = self.call_anthropic(prompt, temperature)
-                if result:
+                    logger.info("✅ Anthropic fallback successful")
                     return result
         
-        # Fallback to local LLM
+        # Try transformer as last resort if not already tried and available
+        if PREFERRED_LLM != "transformer" and USE_TRANSFORMER:
+            logger.info("🔄 Trying transformer model as fallback...")
+            try:
+                from .transformer_summarizer import get_summarizer
+                transformer_summarizer = get_summarizer()
+                result = transformer_summarizer.generate_text(prompt, temperature=temperature)
+                if result:
+                    logger.info("✅ Transformer fallback successful")
+                    return result
+            except Exception as e:
+                logger.warning(f"⚠️ Transformer fallback failed: {e}")
+        
+        # Check if we're in GitHub Actions environment - avoid local LLM
+        if os.getenv('GITHUB_ACTIONS') == 'true':
+            logger.error("❌ All LLM options exhausted in GitHub Actions environment.")
+            return None
+        
+        # Fallback to local LLM only if not in GitHub Actions
+        logger.info("🔄 Trying local LLM as final fallback...")
         return self.call_local_llm(prompt, temperature)
     
     def get_editorial_summary(self, article):
@@ -278,6 +318,37 @@ Style Guidelines:
         
         logger.info(f"🧠 Generating editorial summary for: {article['title']}")
         summary = self.call_best_available_llm(prompt, temperature=0.7)
+        
+        # Fallback if LLM fails - create a basic summary
+        if not summary:
+            logger.warning(f"⚠️ LLM failed for {article['title']}, creating fallback summary")
+            summary = self.create_fallback_summary(article, category_config)
+        
+        return summary
+    
+    def create_fallback_summary(self, article, category_config):
+        """Create a basic fallback summary when LLM fails"""
+        title = article['title']
+        headline = title[:55] + "..." if len(title) > 55 else title
+        
+        # Extract first few sentences from article text
+        text = article.get('text', '')[:500]
+        sentences = [s.strip() for s in text.split('.') if s.strip() and len(s.strip()) > 20]
+        
+        # Create basic summary structure
+        summary = f"""## {category_config['emoji']} **{headline}**
+
+**The Rundown:** {sentences[0] if sentences else 'New development in AI technology'}.  
+
+• Key development in {category_config['title'].lower()}
+• Significant implications for the AI community
+• Worth monitoring for future developments
+
+**Why it matters:** This development represents an important advancement in the AI space that could influence future technology decisions and research directions.
+
+[👉 Read more]({article['url']})
+
+---"""
         
         return summary
     
@@ -346,6 +417,34 @@ Keep it under 75 words total. Start strong.
         
         logger.info("✍️ Generating newsletter introduction...")
         intro = self.call_best_available_llm(prompt, temperature=0.6)
+        
+        # Fallback if LLM fails
+        if not intro:
+            logger.warning("⚠️ LLM failed for newsletter intro, creating fallback")
+            intro = self.create_fallback_intro(articles, top_categories)
+        
+        return intro
+    
+    def create_fallback_intro(self, articles, top_categories):
+        """Create a basic fallback introduction when LLM fails"""
+        total_articles = len(articles)
+        category_names = [CATEGORIES.get(cat, {}).get('title', cat.title()) for cat, _ in top_categories[:2]]
+        
+        if total_articles >= 8:
+            intensity = "packed"
+        elif total_articles >= 5:
+            intensity = "busy"
+        else:
+            intensity = "focused"
+        
+        if len(category_names) >= 2:
+            categories_text = f"{category_names[0]} and {category_names[1]}"
+        elif len(category_names) == 1:
+            categories_text = category_names[0]
+        else:
+            categories_text = "AI developments"
+        
+        intro = f"""Today brings {total_articles} key developments in AI, with a {intensity} focus on {categories_text}. From breakthrough research to industry moves, here's what developers, founders, and researchers need to know about the latest advances shaping the AI landscape."""
         
         return intro
     
