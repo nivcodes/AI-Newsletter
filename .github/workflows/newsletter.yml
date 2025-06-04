@@ -14,17 +14,17 @@ on:
       force_run:
         description: 'Force run regardless of schedule/holidays'
         required: false
-        default: 'false'
+        default: false
         type: boolean
       dry_run:
         description: 'Generate newsletter without sending email'
         required: false
-        default: 'false'
+        default: false
         type: boolean
       send_only:
         description: 'Send existing newsletter without regenerating'
         required: false
-        default: 'false'
+        default: false
         type: boolean
       html_file:
         description: 'Specific HTML file to send (optional)'
@@ -56,10 +56,12 @@ jobs:
     
     - name: Debug configuration
       run: |
-        echo "🔧 Checking transformer configuration..."
-        echo "USE_TRANSFORMER from config: true (hardcoded)"
+        echo "🔧 Checking LLM configuration..."
         echo "PREFERRED_LLM from secrets: ${{ secrets.PREFERRED_LLM }}"
         echo "USE_EXTERNAL_LLM from secrets: ${{ secrets.USE_EXTERNAL_LLM }}"
+        echo "USE_AWS_BEDROCK from secrets: ${{ secrets.USE_AWS_BEDROCK }}"
+        echo "AWS_REGION from secrets: ${{ secrets.AWS_REGION }}"
+        echo "🔧 Primary: AWS Bedrock, Fallback: Transformer"
     
     - name: Set up environment variables
       env:
@@ -73,6 +75,12 @@ jobs:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         USE_EXTERNAL_LLM: ${{ secrets.USE_EXTERNAL_LLM }}
         PREFERRED_LLM: ${{ secrets.PREFERRED_LLM }}
+        # AWS Bedrock Configuration
+        USE_AWS_BEDROCK: ${{ secrets.USE_AWS_BEDROCK }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_BEDROCK_MODEL_ID: ${{ secrets.AWS_BEDROCK_MODEL_ID }}
       run: |
         # Create .env file from secrets
         echo "EMAIL_FROM=$EMAIL_FROM" >> .env
@@ -83,15 +91,23 @@ jobs:
         echo "SMTP_PORT=$SMTP_PORT" >> .env
         echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> .env
         echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> .env
-        echo "USE_EXTERNAL_LLM=$USE_EXTERNAL_LLM" >> .env
-        echo "PREFERRED_LLM=$PREFERRED_LLM" >> .env
-        # Set transformer as default (free model) - override any secrets
+        
+        # AWS Bedrock Configuration (Primary LLM)
+        echo "USE_AWS_BEDROCK=${USE_AWS_BEDROCK:-true}" >> .env
+        echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> .env
+        echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> .env
+        echo "AWS_REGION=${AWS_REGION:-us-east-1}" >> .env
+        echo "AWS_BEDROCK_MODEL_ID=${AWS_BEDROCK_MODEL_ID:-anthropic.claude-3-sonnet-20240229-v1:0}" >> .env
+        
+        # Set LLM preferences - AWS Bedrock as primary, transformer as fallback
+        echo "USE_EXTERNAL_LLM=${USE_EXTERNAL_LLM:-true}" >> .env
+        echo "PREFERRED_LLM=${PREFERRED_LLM:-aws-anthropic}" >> .env
+        
+        # Transformer as fallback (always available)
         echo "USE_TRANSFORMER=true" >> .env
         echo "TRANSFORMER_MODEL=facebook/bart-large-cnn" >> .env
-        # Force transformer as preferred LLM if not explicitly set to external
-        if [ -z "$PREFERRED_LLM" ] || [ "$PREFERRED_LLM" = "" ]; then
-          echo "PREFERRED_LLM=transformer" >> .env
-        fi
+        
+        echo "🔧 Configuration set: AWS Bedrock primary, Transformer fallback"
     
     - name: Run newsletter scheduler (Normal)
       if: ${{ !github.event.inputs.force_run && !github.event.inputs.dry_run }}
